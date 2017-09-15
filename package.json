@@ -1,8 +1,8 @@
 {
-  "name": "svg-exporter-front",
+  "name": "height-exporter",
   "version": "1.0.0",
-  "description": "svg exporter without backend",
-  "main": "index.js",
+  "description": "",
+  "main": "javascripts/source/index.js",
   "scripts": {
     "test": "npm test",
     "build": "browserify ./javascripts/source/index.js -t babelify --outfile ./javascripts/bundle.js"
