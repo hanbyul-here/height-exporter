@@ -1,12 +1,11 @@
 import { getDistance, computeDestinationPoint } from 'geolib';
+import { Unit } from './unit';
 
-
-const grid = 3;
-const delayTime = 500;
+const grid = 10;
+const delayTime = 1000;
 
 // return double array
 const getElevationCallUrls = function (startCoord, endCoord) {
-  console.log('running')
   let elevationUrlsToFetch = [];
 
   const rightTop = {
@@ -67,7 +66,7 @@ const getElevationValue = function (startCoord, endCoord) {
     });
 
   const delay = ms => new Promise(resolve => setTimeout(resolve, ms, 'dumb'));
-  
+
   return elevationUrlsToFetch.reduce(function(promise, item, index, array) {
     return promise.then(values => {
       // Second promise was just to delay

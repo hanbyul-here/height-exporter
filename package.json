@@ -5,6 +5,7 @@
   "main": "javascripts/source/index.js",
   "scripts": {
     "test": "npm test",
+    "dev": "watchify  ./javascripts/source/index.js -o javascripts/bundle.js -v;",
     "build": "browserify ./javascripts/source/index.js -t babelify --outfile ./javascripts/bundle.js"
   },
   "keywords": [
@@ -17,6 +18,10 @@
     "babel-preset-es2015": "^6.24.1",
     "babelify": "^7.3.0",
     "browserify": "^14.4.0",
-    "geolib": "^2.0.23"
+    "geolib": "^2.0.23",
+    "pvector": "^1.1.0"
+  },
+  "dependencies": {
+    "pvectorjs": "^1.2.0"
   }
 }

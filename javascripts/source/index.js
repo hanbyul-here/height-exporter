@@ -1,1 +1,1 @@
-import * as uiPart from './ui';
+require('./ui');
