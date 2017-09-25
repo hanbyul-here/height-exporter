@@ -4,7 +4,7 @@ const PVector = require('pvectorjs');
 
 class Unit {
   constructor(info) {
-    this.scale = info.scale/10;
+    this.scale = info.scale;
     this.heightInfo = {
       leftTop: new PVector(0, this.scale, info.leftTop),
       rightTop: new PVector(this.scale, this.scale, info.rightTop),
@@ -16,6 +16,7 @@ class Unit {
     // This is thest value
     this.pathGroup = getNode('g', {transform: `translate(${info.transferX} ${info.transferY})`});
   }
+
   // Is this true pvector doesn't offer 3d vector distance
   distance (vec1, vec2) {
     if (vec1.z && vec2.z) {
@@ -42,9 +43,9 @@ class Unit {
     const coreDist = this.coreDist;
     const topDist = this.topDist;
 
+    const leftTop = this.heightInfo.leftTop; // [0]
     const leftBottom = this.heightInfo.leftBottom; // [1]
     const rightBottom = this.heightInfo.rightBottom; // [2]
-    const leftTop = this.heightInfo.leftTop; // [0]
     const rightTop = this.heightInfo.rightTop; //[3]
 
     this.topCore = new PVector(
@@ -55,13 +56,7 @@ class Unit {
             (scale*4 + Math.cos((3*Math.PI/2) - baseAngle - bottomAngle - topAngle) * topDist),
             (leftTop.z + Math.sin((3*Math.PI/2) - baseAngle - bottomAngle - topAngle)* topDist));
 
-
-    this.tempTop3 = new PVector(scale*3, rightTop.z);
-
-    this.tempTop4 = new PVector(scale*4, leftTop.z);
-//
-    const distBtw34 = this.distance(this.tempTop3,this.tempTop4);
-
+    const distBtw34 = this.distance(this.top3,this.top4);
 
     this.wings = new Array(6);
 
@@ -77,7 +72,7 @@ class Unit {
     this.wings[1].norm();
     this.wings[1].rotateBy(Math.PI - this.angle3);
     this.wings[1].mult(rightTop.z);
-    this.wings[1].add(this.tempTop3);
+    this.wings[1].add(this.top3);
 
     this.wings[2] = new PVector.sub(this.topNext, this.topCore);
     this.wings[2].norm();
@@ -105,9 +100,41 @@ class Unit {
     this.wings[5].mult(leftBottom.z);
     this.wings[5].add(this.topNext);
 
+    const flapScale = this.scale/4;
+
+    this.flaps = new Array(8);
+    this.flaps[0] = new PVector(this.wings[2]);
+    this.flaps[0].norm();
+    this.flaps[0].rotateBy(-Math.PI/8);
+    this.flaps[0].mult(flapScale);
+    this.flaps[0].add(this.topNext);
+
+    this.flaps[1] = new PVector(this.wings[2]);
+    this.flaps[1].norm();
+    this.flaps[1].rotateBy(-7*Math.PI/8);
+    this.flaps[1].mult(flapScale);
+    this.flaps[1].add(this.wings[2]);
+
+    this.flaps[2] = new PVector(this.wings[3]);
+    this.flaps[2].norm();
+    this.flaps[2].rotateBy(Math.PI/8);
+    this.flaps[2].mult(flapScale);
+    this.flaps[2].add(this.topCore);
+
+    this.flaps[3] = PVector.sub(this.topNext, this.topCore);
+    this.flaps[3].norm();
+    this.flaps[3].rotateBy(7*Math.PI/8);
+    this.flaps[3].mult(flapScale);
+    this.flaps[3].add(this.wings[3]);
+
+
+    this.flaps[4] = new PVector(this.top3.x - flapScale, flapScale);
+    this.flaps[5] = new PVector(this.top3.x - flapScale, this.top3.y - flapScale);
+
+    this.flaps[6] = new PVector(this.top4.x + flapScale, flapScale);
+    this.flaps[7] = new PVector(this.top4.x + flapScale, this.top4.y - flapScale);
 
   }
-
 
   unfold () {
     const leftBottom = this.heightInfo.leftBottom;// [1]
@@ -159,20 +186,27 @@ class Unit {
     this.angle3 = PVector.angleBetween(pv3, downVector);
   }
 
+  writeNumber (v) {
+    var svgTextContent = `${this.xIndex} - ${this.yIndex}`;
+    var textNode = getNode('text', {x:v.x, y: v.y});
+    textNode.textContent = svgTextContent;
+    this.pathGroup.appendChild(textNode);
+  }
+
   draw () {
     this.unfold();
     this.unfoldWide();
 
     const path1 = new SVGPathHelper();
 
-    path1.moveTo(this.tempTop3);
+    path1.moveTo(this.top3);
     path1.lineTo(this.topCore);
     path1.lineTo(this.topNext);
-    path1.lineTo(this.tempTop4);
-    path1.lineTo(this.tempTop3);
+    path1.lineTo(this.top4);
+    path1.lineTo(this.top3);
 
     path1.moveTo(this.topCore);
-    path1.lineTo(this.tempTop4);
+    path1.lineTo(this.top4);
 
     path1.moveTo(new PVector(this.scale*3, 0));
     path1.lineTo(this.top3);
@@ -194,18 +228,46 @@ class Unit {
     path1.lineTo(this.topCore);
     path1.lineTo(this.topNext);
 
-    path1.moveTo(this.tempTop4);
+    path1.moveTo(this.top4);
     path1.lineTo(this.wings[4]);
     path1.lineTo(this.wings[5]);
     path1.lineTo(this.topNext);
-    path1.lineTo(this.tempTop4);
+    path1.lineTo(this.top4);
+
+    // path1.moveTo(this.topCore);
+    // path1.lineTo(this.flaps[2]);
+    // path1.lineTo(this.flaps[3]);
+    // path1.lineTo(this.wings[3]);
+    // path1.lineTo(this.topCore);
+
+    // path1.moveTo(this.topNext);
+    // path1.lineTo(this.flaps[0]);
+    // path1.lineTo(this.flaps[1]);
+    // path1.lineTo(this.wings[2]);
+    // path1.lineTo(this.topNext);
+
+    path1.moveTo(new PVector(this.scale*3, 0));
+    path1.lineTo(this.flaps[4]);
+    path1.lineTo(this.flaps[5]);
+    path1.lineTo(this.top3);
+    path1.lineTo(new PVector(this.scale*3, 0));
+
+    path1.moveTo(new PVector(this.scale*4, 0));
+    path1.lineTo(this.flaps[6]);
+    path1.lineTo(this.flaps[7]);
+    path1.lineTo(this.top4);
+    path1.lineTo(new PVector(this.scale*4, 0));
+
 
     // path1.lineTo(new PVector(0, this.heightInfoRightTop));
     path1.close();
 
     const pathNode = path1.getPathNode();
     this.pathGroup.appendChild(pathNode);
+
+    this.writeNumber(new PVector(this.scale*3.2, this.scale*0.5));
   }
+
 
   getPathGroup () {
     return this.pathGroup;

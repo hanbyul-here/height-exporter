@@ -5,18 +5,18 @@ import { getNode } from './SVGUtil';
 class Layer {
   constructor(data) {
     const heights = data.height_data;
-    const scale = data.distance;
+    const scale = data.distance/20;
 
     this.baseSVG = getNode('svg');
 
     this.units = [];
     let transferX = 0;
-    let transferY = 0;
+    let transferY = -100;
     for (let i = 0, j = heights.length-1; i < j; i++) {
-      transferX += scale;
+      transferX = scale*5*i; // this is really arbitrary number
+      transferY = -100;
       for (let k = 0, l = heights[i].length-1; k < l; k++) {
-        transferY += (heights[i][k]);
-        const heightScale = 2;
+        const heightScale = 4;
         const unit = new Unit({
           leftTop: heights[i][k]/heightScale,
           rightTop: heights[i][k+1]/heightScale,
@@ -26,13 +26,13 @@ class Layer {
           xIndex: i,
           yIndex: k,
           transferX: transferX,
-          transferY: transferY,
+          transferY: transferY
         });
+        transferY += (heights[i][k]);
         this.units.push(unit);
       }
     }
 
-    let groups = [];
     for(const unit of this.units) {
       unit.draw();
       this.baseSVG.appendChild(unit.getPathGroup());
