@@ -100,39 +100,39 @@ class Unit {
     this.wings[5].mult(leftBottom.z);
     this.wings[5].add(this.topNext);
 
-    const flapScale = this.scale/4;
+    const flapScale = this.scale/2;
 
     this.flaps = new Array(8);
-    this.flaps[0] = new PVector(this.wings[2]);
+    this.flaps[0] = new PVector.sub(this.wings[2], this.topNext);
     this.flaps[0].norm();
     this.flaps[0].rotateBy(-Math.PI/8);
     this.flaps[0].mult(flapScale);
     this.flaps[0].add(this.topNext);
 
-    this.flaps[1] = new PVector(this.wings[2]);
+    this.flaps[1] = new PVector.sub(this.wings[2], this.topNext);
     this.flaps[1].norm();
     this.flaps[1].rotateBy(-7*Math.PI/8);
     this.flaps[1].mult(flapScale);
     this.flaps[1].add(this.wings[2]);
 
-    this.flaps[2] = new PVector(this.wings[3]);
+    this.flaps[2] = new PVector.sub(this.wings[3], this.topCore);
     this.flaps[2].norm();
     this.flaps[2].rotateBy(Math.PI/8);
     this.flaps[2].mult(flapScale);
     this.flaps[2].add(this.topCore);
 
-    this.flaps[3] = PVector.sub(this.topNext, this.topCore);
+    this.flaps[3] = PVector.sub(this.wings[3], this.topCore);
     this.flaps[3].norm();
     this.flaps[3].rotateBy(7*Math.PI/8);
     this.flaps[3].mult(flapScale);
     this.flaps[3].add(this.wings[3]);
 
+    // TO DO: Do this in right way
+    this.flaps[4] = new PVector(this.top3.x - flapScale/2, flapScale/2);
+    this.flaps[5] = new PVector(this.top3.x - flapScale/2, this.top3.y - flapScale/2);
 
-    this.flaps[4] = new PVector(this.top3.x - flapScale, flapScale);
-    this.flaps[5] = new PVector(this.top3.x - flapScale, this.top3.y - flapScale);
-
-    this.flaps[6] = new PVector(this.top4.x + flapScale, flapScale);
-    this.flaps[7] = new PVector(this.top4.x + flapScale, this.top4.y - flapScale);
+    this.flaps[6] = new PVector(this.top4.x + flapScale/2, flapScale/2);
+    this.flaps[7] = new PVector(this.top4.x + flapScale/2, this.top4.y - flapScale/2);
 
   }
 
@@ -234,17 +234,17 @@ class Unit {
     path1.lineTo(this.topNext);
     path1.lineTo(this.top4);
 
-    // path1.moveTo(this.topCore);
-    // path1.lineTo(this.flaps[2]);
-    // path1.lineTo(this.flaps[3]);
-    // path1.lineTo(this.wings[3]);
-    // path1.lineTo(this.topCore);
+    path1.moveTo(this.topCore);
+    path1.lineTo(this.flaps[2]);
+    path1.lineTo(this.flaps[3]);
+    path1.lineTo(this.wings[3]);
+    path1.lineTo(this.topCore);
 
-    // path1.moveTo(this.topNext);
-    // path1.lineTo(this.flaps[0]);
-    // path1.lineTo(this.flaps[1]);
-    // path1.lineTo(this.wings[2]);
-    // path1.lineTo(this.topNext);
+    path1.moveTo(this.topNext);
+    path1.lineTo(this.flaps[0]);
+    path1.lineTo(this.flaps[1]);
+    path1.lineTo(this.wings[2]);
+    path1.lineTo(this.topNext);
 
     path1.moveTo(new PVector(this.scale*3, 0));
     path1.lineTo(this.flaps[4]);
