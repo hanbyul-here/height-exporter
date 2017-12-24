@@ -1,6 +1,7 @@
 import { getElevationValue } from './ElevationUtil';
 import { Layer } from './Layer';
 
+import { setScene } from './Preview';
 
 (function (root, factory) {
   // Universal Module Definition (UMD)
@@ -23,8 +24,7 @@ import { Layer } from './Layer';
     },
     scrollZoom: false,
     minZoom: 2})
-  .setView([40.7142700, -74.0059700], 14);
-
+  .setView([35.3555, 138.7324], 14);
 
   L.Mapzen.hash({
     map: map
@@ -52,19 +52,19 @@ import { Layer } from './Layer';
 
   requestTileButton.addEventListener('click', function (e) {
     // loading static data while in development
-    const xhr = new XMLHttpRequest();
-    xhr.open("GET", '/javascripts/sample/sample-data-fuji.json');
-    xhr.onload = () => {
-      var data = JSON.parse(xhr.responseText);
-      console.log(data);
-      var layer = new Layer(data[0]);
-      var svgdata = layer.getSVGData();
-      enableDownloadLink(svgdata);
-    }
-    xhr.onerror = () => console.log('error')
-    xhr.send();
+    // const xhr = new XMLHttpRequest();
+    // xhr.open("GET", '/javascripts/sample/sample-data-fuji.json');
+    // xhr.onload = () => {
+    //   var data = JSON.parse(xhr.responseText);
+    //   console.log(data);
+    //   var layer = new Layer(data[0]);
+    //   var svgdata = layer.getSVGData();
+    //   enableDownloadLink(svgdata);
+    // }
+    // xhr.onerror = () => console.log('error')
+    // xhr.send();
 
-    /*
+
     var startCoord = {
       latitude: document.getElementById('startLat').value,
       longitude: document.getElementById('startLon').value
@@ -73,9 +73,14 @@ import { Layer } from './Layer';
       latitude: document.getElementById('endLat').value,
       longitude: document.getElementById('endLon').value
     }
+
     getElevationValue(startCoord, endCoord).then( (result) => {
       console.log(result);
-    })*/
+      var preview = setScene(result.height_data);
+      var layer = new Layer(result);
+      var svgdata = layer.getSVGData();
+      enableDownloadLink(svgdata);
+    })
 
 
   });

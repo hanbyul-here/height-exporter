@@ -1,4 +1,3 @@
-import { getDistance, computeDestinationPoint } from 'geolib';
 import { Unit } from './unit';
 
 const grid = 10;
@@ -6,6 +5,7 @@ const delayTime = 1000;
 
 // return double array
 const getElevationCallUrls = function (startCoord, endCoord) {
+
   let elevationUrlsToFetch = [];
 
   const rightTop = {
@@ -13,36 +13,44 @@ const getElevationCallUrls = function (startCoord, endCoord) {
     longitude: startCoord.longitude
   }
 
-  const horizontalDistance = getDistance(startCoord, rightTop);
-
-  const samplingDistance = (horizontalDistance/grid).toFixed(5);
-  const url = buildURL(startCoord, rightTop, samplingDistance);
-  elevationUrlsToFetch.push(url);
+  const gap = (parseFloat(endCoord.longitude) - parseFloat(startCoord.longitude))/(grid-1);
 
   for (let i = 0; i < grid; i++) {
-    const nextPoint = computeDestinationPoint(startCoord, samplingDistance * (i+1), 90);
+    const nextPoint = {latitude: startCoord.latitude, longitude: parseFloat(startCoord.longitude) + gap*i};
+    console.log(nextPoint)
     const nextRightPoint = { latitude: endCoord.latitude, longitude: nextPoint.longitude};
-    const thisUrl = buildURL(nextPoint, nextRightPoint, samplingDistance);
+    const thisUrl = buildURLWithShapes(getCoordArray(nextPoint, nextRightPoint));
     elevationUrlsToFetch.push(thisUrl);
   }
 
   return elevationUrlsToFetch;
 }
 
+const getCoordArray = function (startCoord, endCoord) {
+  let returnArray = [];
+  const gap = (parseFloat(endCoord.latitude) - parseFloat(startCoord.latitude))/(grid-1);
+  for(let i = 0; i< grid; i++) {
+    returnArray.push({
+      lat: parseFloat(startCoord.latitude) + (gap*i),
+      lon: startCoord.longitude
+    })
+  }
+  return returnArray;
+}
 
-const buildURL = function (startCoord, endCoord, samplingDistance) {
+
+const buildURLWithShapes = function (shapeArray) {
   const serviceUrl = 'https://elevation.mapzen.com/';
   const apiKey = 'mapzen-cf31pKV';
-  var startLoc = converToLatLon(startCoord);
-  var endLoc = converToLatLon(endCoord);
+  // var startLoc = converToLatLon(startCoord);
+  // var endLoc = converToLatLon(endCoord);
   var params = JSON.stringify({
-    shape : [startLoc, endLoc],
-    // range : true,
-    resample_distance : samplingDistance
+    shape : shapeArray
   });
 
   return serviceUrl + 'height?json=' + params + '&api_key=' + apiKey;
 }
+
 
 const converToLatLon = function (obj) {
   return {
@@ -53,7 +61,9 @@ const converToLatLon = function (obj) {
 
 const getElevationValue = function (startCoord, endCoord) {
   const elevationUrlsToFetch = getElevationCallUrls(startCoord, endCoord);
-  let jsonArray = [];
+  let result = {
+    "height_data": []
+  }
 
   const getEachCall = (url) =>
     new Promise((resolve, reject) => {
@@ -66,13 +76,13 @@ const getElevationValue = function (startCoord, endCoord) {
     });
 
   const delay = ms => new Promise(resolve => setTimeout(resolve, ms, 'dumb'));
-
+  console.log(elevationUrlsToFetch);
   return elevationUrlsToFetch.reduce(function(promise, item, index, array) {
     return promise.then(values => {
       // Second promise was just to delay
       return Promise.all([getEachCall(item), delay(delayTime)]).then((values)=> {
-        jsonArray.push(values[0].height);
-        return jsonArray;
+        result.height_data.push(values[0].height);
+        return result;
       });
     })
   }, Promise.resolve());
