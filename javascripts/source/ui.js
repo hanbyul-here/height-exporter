@@ -24,7 +24,7 @@ import { setScene } from './Preview';
     },
     scrollZoom: false,
     minZoom: 2})
-  .setView([35.3555, 138.7324], 14);
+  .setView([46.2332, -122.1845], 14);
 
   L.Mapzen.hash({
     map: map
