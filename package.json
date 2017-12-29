@@ -22,6 +22,8 @@
     "pvector": "^1.1.0"
   },
   "dependencies": {
-    "pvectorjs": "^1.2.0"
+    "pvectorjs": "^1.2.0",
+    "three": "^0.89.0",
+    "three-orbitcontrols": "^2.0.0"
   }
 }
