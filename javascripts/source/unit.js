@@ -188,7 +188,7 @@ class Unit {
 
   writeNumber (v) {
     var svgTextContent = `${this.xIndex} - ${this.yIndex}`;
-    var textNode = getNode('text', {x:v.x, y: v.y});
+    var textNode = getNode('text', {x:v.x, y: v.y, 'font-size':this.scale/2 });
     textNode.textContent = svgTextContent;
     this.pathGroup.appendChild(textNode);
   }

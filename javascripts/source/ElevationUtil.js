@@ -59,6 +59,10 @@ const converToLatLon = function (obj) {
   };
 }
 
+const getProcessedNumber = function(val) {
+
+}
+
 const getElevationValue = function (startCoord, endCoord) {
   const elevationUrlsToFetch = getElevationCallUrls(startCoord, endCoord);
   let result = {
@@ -85,7 +89,26 @@ const getElevationValue = function (startCoord, endCoord) {
         return result;
       });
     })
-  }, Promise.resolve());
+  }, Promise.resolve())
+  .then((result) => {
+    const flattenedArray = result['height_data'].reduce((prev, curr) => {return prev.concat(curr)}, []);
+    const maxVal = Math.max.apply(null, flattenedArray);
+    const minVal = Math.min.apply(null, flattenedArray);
+    const offset = 20;
+    const maxArtNumber = 80;
+    let newHeightValues = [];
+    for (var i = 0; i < grid; i++) {
+      let valRows = [];
+      for(var j = 0; j < grid; j++) {
+        const currentVal = result['height_data'][i][j];
+        newHeightValues.push( ((currentVal/maxVal) * maxArtNumber) + offset);
+      }
+    }
+
+    return {
+      "height_data": newHeightValues
+    }
+  })
 }
 
 

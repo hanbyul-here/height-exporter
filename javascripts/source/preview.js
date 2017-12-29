@@ -1,6 +1,7 @@
 var THREE = require('three');
 
 var OrbitControls = require('three-orbitcontrols')
+const grid = 10;
 
 const setScene = function (resultArr) {
 
@@ -12,11 +13,11 @@ const setScene = function (resultArr) {
 
 
   function init() {
-    camera = new THREE.PerspectiveCamera( 70, window.innerWidth / window.innerHeight, 1, 1000 );
+    camera = new THREE.PerspectiveCamera( 70, 1, 1, 1000 );
     camera.position.z = 300;
     scene = new THREE.Scene();
 
-    var geometry = new THREE.PlaneGeometry( 100, 100, 9,9 );
+    var geometry = new THREE.PlaneGeometry( 100, 100, (grid-1),(grid-1) );
     var material = new THREE.MeshBasicMaterial( {color: 0x2194ce,  wireframe: true, vertexColors: THREE.VertexColors} );
     plane = new THREE.Mesh( geometry, material );
     scene.add( plane );
@@ -36,8 +37,10 @@ const setScene = function (resultArr) {
     var flattenedArray = resultArr.reduce((prev, curr) => {return prev.concat(curr)}, []);
     console.log(flattenedArray.length);
     console.log(plane.geometry.vertices.length);
+
+
     for ( var i = 0; i < plane.geometry.vertices.length; i++ ) {
-      plane.geometry.vertices[i].z = flattenedArray[i]/50;
+      plane.geometry.vertices[i].z = flattenedArray[i];
     }
 
     window.addEventListener( 'resize', onWindowResize, false );

@@ -17,3 +17,14 @@ body {
 #status {
   display: none;
 }
+
+#preview-box {
+  width: 500px;
+  height: 500px;
+}
+
+
+#preview-box canvas {
+  width: 100%;
+  height: 100%;
+}
