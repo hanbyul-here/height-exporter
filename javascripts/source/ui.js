@@ -32,7 +32,7 @@ import { setScene } from './Preview';
 
   L.Mapzen.geocoder().addTo(map);
 
-  var areaSelect = L.areaSelect({width:200, height:250});
+  var areaSelect = L.areaSelect({width:300, height:300});
 
   areaSelect.on("change", function() {
     var bounds = this.getBounds();
