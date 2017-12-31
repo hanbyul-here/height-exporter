@@ -100,7 +100,7 @@ class Unit {
     this.wings[5].mult(leftBottom.z);
     this.wings[5].add(this.topNext);
 
-    const flapScale = this.scale/2;
+    const flapScale = this.scale/4;
 
     this.flaps = new Array(8);
     this.flaps[0] = new PVector.sub(this.wings[2], this.topNext);
@@ -128,11 +128,11 @@ class Unit {
     this.flaps[3].add(this.wings[3]);
 
     // TO DO: Do this in right way
-    this.flaps[4] = new PVector(this.top3.x - flapScale/2, flapScale/2);
-    this.flaps[5] = new PVector(this.top3.x - flapScale/2, this.top3.y - flapScale/2);
+    this.flaps[4] = new PVector(this.top3.x - flapScale, flapScale);
+    this.flaps[5] = new PVector(this.top3.x - flapScale, this.top3.y - flapScale);
 
-    this.flaps[6] = new PVector(this.top4.x + flapScale/2, flapScale/2);
-    this.flaps[7] = new PVector(this.top4.x + flapScale/2, this.top4.y - flapScale/2);
+    this.flaps[6] = new PVector(this.top4.x + flapScale, flapScale);
+    this.flaps[7] = new PVector(this.top4.x + flapScale, this.top4.y - flapScale);
 
   }
 
@@ -188,9 +188,53 @@ class Unit {
 
   writeNumber (v) {
     var svgTextContent = `${this.xIndex} - ${this.yIndex}`;
-    var textNode = getNode('text', {x:v.x, y: v.y, 'font-size':this.scale/2 });
+    var textNode = getNode('text', {x:v.x, y:0, 'font-size':this.scale/4, 'transform': `rotate(180 ${v.x + this.scale/4} 3)` });
     textNode.textContent = svgTextContent;
     this.pathGroup.appendChild(textNode);
+  }
+
+
+
+  drawPolygon () {
+    var e = function (v) {
+        return ` ${v.x},${v.y}`;
+    }
+
+    var ps = [];
+
+    ps.push(e(this.topNext));
+    ps.push(e(this.flaps[0]));
+    ps.push(e(this.flaps[1]));
+
+    ps.push(e(this.wings[2]));
+
+    ps.push(e(this.wings[3]));
+    ps.push(e(this.flaps[3]));
+    ps.push(e(this.flaps[2]));
+    ps.push(e(this.topCore));
+
+
+    ps.push(e(this.wings[0]));
+    ps.push(e(this.wings[1]));
+
+
+    ps.push(e(this.top3));
+    ps.push(e(this.flaps[5]));
+    ps.push(e(this.flaps[4]));
+    ps.push(e(new PVector(this.scale*3, 0)));
+
+
+    ps.push(e(new PVector(this.scale*4, 0)));
+    ps.push(e(this.flaps[6]));
+    ps.push(e(this.flaps[7]));
+    ps.push(e(this.top4));
+
+
+    ps.push(e(this.wings[4]));
+    ps.push(e(this.wings[5]));
+
+    var polygonNode = getNode('polygon', {points: ps.join(' '), style: "stroke:purple;fill:none" });
+    this.pathGroup.appendChild(polygonNode);
   }
 
   draw () {
@@ -205,58 +249,76 @@ class Unit {
     path1.lineTo(this.top4);
     path1.lineTo(this.top3);
 
-    path1.moveTo(this.topCore);
-    path1.lineTo(this.top4);
-
-    path1.moveTo(new PVector(this.scale*3, 0));
-    path1.lineTo(this.top3);
-    path1.lineTo(this.top4);
-    path1.lineTo(new PVector(this.scale*4, 0));
-    path1.lineTo(new PVector(this.scale*3, 0));
-
-
-    path1.moveTo(this.topCore);
-    path1.lineTo(this.wings[0]);
-    path1.lineTo(this.wings[1]);
-    path1.lineTo(this.top3);
-    path1.lineTo(this.topCore);
-
-
-    path1.moveTo(this.topNext);
-    path1.lineTo(this.wings[2])
-    path1.lineTo(this.wings[3]);
-    path1.lineTo(this.topCore);
-    path1.lineTo(this.topNext);
-
     path1.moveTo(this.top4);
-    path1.lineTo(this.wings[4]);
-    path1.lineTo(this.wings[5]);
-    path1.lineTo(this.topNext);
-    path1.lineTo(this.top4);
-
-    path1.moveTo(this.topCore);
-    path1.lineTo(this.flaps[2]);
-    path1.lineTo(this.flaps[3]);
-    path1.lineTo(this.wings[3]);
-    path1.lineTo(this.topCore);
-
-    path1.moveTo(this.topNext);
-    path1.lineTo(this.flaps[0]);
-    path1.lineTo(this.flaps[1]);
-    path1.lineTo(this.wings[2]);
-    path1.lineTo(this.topNext);
+    path1.lineTo(new PVector(this.scale*4, 0));
 
     path1.moveTo(new PVector(this.scale*3, 0));
-    path1.lineTo(this.flaps[4]);
-    path1.lineTo(this.flaps[5]);
     path1.lineTo(this.top3);
-    path1.lineTo(new PVector(this.scale*3, 0));
 
-    path1.moveTo(new PVector(this.scale*4, 0));
-    path1.lineTo(this.flaps[6]);
-    path1.lineTo(this.flaps[7]);
-    path1.lineTo(this.top4);
-    path1.lineTo(new PVector(this.scale*4, 0));
+    path1.moveTo(this.topNext);
+    path1.lineTo(this.wings[2]);
+
+    path1.moveTo(this.topCore);
+    path1.lineTo(this.wings[3]);
+
+    // path1.moveTo(this.top3);
+    // path1.lineTo(this.topCore);
+    // path1.lineTo(this.topNext);
+    // path1.lineTo(this.top4);
+    // path1.lineTo(this.top3);
+
+    // path1.moveTo(this.topCore);
+    // path1.lineTo(this.top4);
+
+    // path1.moveTo(new PVector(this.scale*3, 0));
+    // path1.lineTo(this.top3);
+    // path1.lineTo(this.top4);
+    // path1.lineTo(new PVector(this.scale*4, 0));
+    // path1.lineTo(new PVector(this.scale*3, 0));
+
+
+    // path1.moveTo(this.topCore);
+    // path1.lineTo(this.wings[0]);
+    // path1.lineTo(this.wings[1]);
+    // path1.lineTo(this.top3);
+    // path1.lineTo(this.topCore);
+
+
+    // path1.moveTo(this.topNext);
+    // path1.lineTo(this.wings[2])
+    // path1.lineTo(this.wings[3]);
+    // path1.lineTo(this.topCore);
+    // path1.lineTo(this.topNext);
+
+    // path1.moveTo(this.top4);
+    // path1.lineTo(this.wings[4]);
+    // path1.lineTo(this.wings[5]);
+    // path1.lineTo(this.topNext);
+    // path1.lineTo(this.top4);
+
+    // path1.moveTo(this.topCore);
+    // path1.lineTo(this.flaps[2]);
+    // path1.lineTo(this.flaps[3]);
+    // path1.lineTo(this.wings[3]);
+    // path1.lineTo(this.topCore);
+
+    // path1.moveTo(this.topNext);
+    // path1.lineTo(this.flaps[0]);
+    // path1.lineTo(this.flaps[1]);
+    // path1.lineTo(this.wings[2]);
+    // path1.lineTo(this.topNext);
+
+    // path1.moveTo(new PVector(this.scale*3, 0));
+    // path1.lineTo(this.flaps[4]);
+    // path1.lineTo(this.flaps[5]);
+    // path1.lineTo(this.top3);
+    // path1.lineTo(new PVector(this.scale*3, 0));
+
+    // path1.moveTo(new PVector(this.scale*4, 0));
+    // path1.lineTo(this.flaps[6]);
+    // path1.lineTo(this.flaps[7]);
+    // path1.lineTo(this.top4);
+    // path1.lineTo(new PVector(this.scale*4, 0));
 
 
     // path1.lineTo(new PVector(0, this.heightInfoRightTop));
@@ -265,7 +327,9 @@ class Unit {
     const pathNode = path1.getPathNode();
     this.pathGroup.appendChild(pathNode);
 
+
     this.writeNumber(new PVector(this.scale*3.2, this.scale*0.5));
+    this.drawPolygon();
   }
 
 
