@@ -19,7 +19,7 @@ class SVGPathHelper {
   }
 
   getPathNode () {
-    const pathNode = getNode('path', {d: `${this.pathData}` });
+    const pathNode = getNode('path', {d: `${this.pathData}`, style: "stroke:black;fill:none" });
     return pathNode;
   }
 }

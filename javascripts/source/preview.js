@@ -1,9 +1,13 @@
 var THREE = require('three');
 
 var OrbitControls = require('three-orbitcontrols')
-const grid = 10;
+import store from './redux/store'
 
 const setScene = function (resultArr) {
+
+  const grid = store.getState()['grid'];
+  const scale = store.getState()['unit'];
+  const downDefault = 500;
 
   var camera, scene, renderer;
   var plane;
@@ -11,13 +15,12 @@ const setScene = function (resultArr) {
   init();
   animate();
 
-
   function init() {
     camera = new THREE.PerspectiveCamera( 70, 1, 1, 1000 );
-    camera.position.z = 300;
+    camera.position.z = 600;
     scene = new THREE.Scene();
 
-    var geometry = new THREE.PlaneGeometry( 100, 100, (grid-1),(grid-1) );
+    var geometry = new THREE.PlaneGeometry( (grid-1)*scale, (grid-1)*scale, (grid-1),(grid-1) );
     var material = new THREE.MeshBasicMaterial( {color: 0x2194ce,  wireframe: true, vertexColors: THREE.VertexColors} );
     plane = new THREE.Mesh( geometry, material );
     scene.add( plane );
@@ -38,9 +41,10 @@ const setScene = function (resultArr) {
     console.log(flattenedArray.length);
     console.log(plane.geometry.vertices.length);
 
+    let offset = store.getState()['offset'];
 
-    for ( var i = 0; i < plane.geometry.vertices.length; i++ ) {
-      plane.geometry.vertices[i].z = flattenedArray[i];
+    for (let i = 0; i < plane.geometry.vertices.length; i++ ) {
+      plane.geometry.vertices[i].z = flattenedArray[i] - offset;
     }
 
     window.addEventListener( 'resize', onWindowResize, false );

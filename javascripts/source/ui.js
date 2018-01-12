@@ -1,3 +1,4 @@
+import store from './redux/store'
 import { getElevationValue } from './ElevationUtil';
 import { Layer } from './Layer';
 
@@ -24,7 +25,7 @@ import { setScene } from './Preview';
     },
     scrollZoom: false,
     minZoom: 2})
-  .setView([46.2332, -122.1845], 14);
+  .setView([46.1979, -122.1845], 12);
 
   L.Mapzen.hash({
     map: map

@@ -18,9 +18,9 @@
     "babel-preset-es2015": "^6.24.1",
     "babelify": "^7.3.0",
     "browserify": "^14.4.0",
-    "geolib": "^2.0.23",
     "pvector": "^1.1.0",
-    "redux": "^3.7.2"
+    "redux": "^3.7.2",
+    "vectorize-text": "^3.0.2"
   },
   "dependencies": {
     "pvectorjs": "^1.2.0",

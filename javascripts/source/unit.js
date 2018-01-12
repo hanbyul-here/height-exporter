@@ -1,5 +1,5 @@
-import { SVGPathHelper } from './SVGPathHelper';
 import { getNode } from './SVGUtil';
+var vectorizeText = require("vectorize-text");
 const PVector = require('pvectorjs');
 
 class Unit {
@@ -106,25 +106,25 @@ class Unit {
     this.flaps[0] = new PVector.sub(this.wings[2], this.topNext);
     this.flaps[0].norm();
     this.flaps[0].rotateBy(-Math.PI/8);
-    this.flaps[0].mult(flapScale);
+    this.flaps[0].mult(flapScale*2);
     this.flaps[0].add(this.topNext);
 
     this.flaps[1] = new PVector.sub(this.wings[2], this.topNext);
     this.flaps[1].norm();
     this.flaps[1].rotateBy(-7*Math.PI/8);
-    this.flaps[1].mult(flapScale);
+    this.flaps[1].mult(flapScale*2);
     this.flaps[1].add(this.wings[2]);
 
     this.flaps[2] = new PVector.sub(this.wings[3], this.topCore);
     this.flaps[2].norm();
     this.flaps[2].rotateBy(Math.PI/8);
-    this.flaps[2].mult(flapScale);
+    this.flaps[2].mult(flapScale*2);
     this.flaps[2].add(this.topCore);
 
     this.flaps[3] = PVector.sub(this.wings[3], this.topCore);
     this.flaps[3].norm();
     this.flaps[3].rotateBy(7*Math.PI/8);
-    this.flaps[3].mult(flapScale);
+    this.flaps[3].mult(flapScale*2);
     this.flaps[3].add(this.wings[3]);
 
     // TO DO: Do this in right way
@@ -187,20 +187,43 @@ class Unit {
   }
 
   writeNumber (v) {
-    var svgTextContent = `${this.xIndex} - ${this.yIndex}`;
-    var textNode = getNode('text', {x:v.x, y:0, 'font-size':this.scale/4, 'transform': `rotate(180 ${v.x + this.scale/4} 3)` });
-    textNode.textContent = svgTextContent;
-    this.pathGroup.appendChild(textNode);
+    // Gotta write number in polygon
+    let polygons = vectorizeText(`${this.xIndex} - ${this.yIndex}`, {
+      polygons: true,
+      width: this.scale*0.5,
+      height: this.scale*0.2,
+      textBaseline: "hanging"
+    })
+
+    let numberPolygon = [];
+    let offsetx = this.scale*3.15;
+    let offsety = -this.scale*0.3;
+
+    polygons.forEach(function(loops) {
+      //numberPolygon.push('<path d="')
+      loops.forEach(function(loop) {
+        var start = loop[0]
+        numberPolygon.push('M ' + (start[0]+offsetx) + ' ' + (start[1]+offsety))
+        for(var i=1; i<loop.length; ++i) {
+          var p = loop[i]
+          numberPolygon.push('L ' + (p[0]+offsetx) + ' ' + (p[1]+offsety))
+        }
+        numberPolygon.push('L ' + (start[0]+offsetx) + ' ' + (start[1]+offsety))
+      })
+    })
+    let numberPolygonToAttch = getNode('path', {d:numberPolygon.join(' '), style: "stroke:black;fill:none", 'transform': `rotate(180 ${v.x + this.scale/4} 3)`})
+
+    this.pathGroup.appendChild(numberPolygonToAttch);
   }
 
 
 
   drawPolygon () {
-    var e = function (v) {
+    let e = function (v) {
         return ` ${v.x},${v.y}`;
     }
 
-    var ps = [];
+    let ps = [];
 
     ps.push(e(this.topNext));
     ps.push(e(this.flaps[0]));
@@ -233,101 +256,13 @@ class Unit {
     ps.push(e(this.wings[4]));
     ps.push(e(this.wings[5]));
 
-    var polygonNode = getNode('polygon', {points: ps.join(' '), style: "stroke:purple;fill:none" });
+    var polygonNode = getNode('polygon', {points: ps.join(' '), style: "stroke:purple;fill:none" , rel: `${this.xIndex}-${this.yIndex}` });
     this.pathGroup.appendChild(polygonNode);
   }
 
   draw () {
     this.unfold();
     this.unfoldWide();
-
-    const path1 = new SVGPathHelper();
-
-    path1.moveTo(this.top3);
-    path1.lineTo(this.topCore);
-    path1.lineTo(this.topNext);
-    path1.lineTo(this.top4);
-    path1.lineTo(this.top3);
-
-    path1.moveTo(this.top4);
-    path1.lineTo(new PVector(this.scale*4, 0));
-
-    path1.moveTo(new PVector(this.scale*3, 0));
-    path1.lineTo(this.top3);
-
-    path1.moveTo(this.topNext);
-    path1.lineTo(this.wings[2]);
-
-    path1.moveTo(this.topCore);
-    path1.lineTo(this.wings[3]);
-
-    // path1.moveTo(this.top3);
-    // path1.lineTo(this.topCore);
-    // path1.lineTo(this.topNext);
-    // path1.lineTo(this.top4);
-    // path1.lineTo(this.top3);
-
-    // path1.moveTo(this.topCore);
-    // path1.lineTo(this.top4);
-
-    // path1.moveTo(new PVector(this.scale*3, 0));
-    // path1.lineTo(this.top3);
-    // path1.lineTo(this.top4);
-    // path1.lineTo(new PVector(this.scale*4, 0));
-    // path1.lineTo(new PVector(this.scale*3, 0));
-
-
-    // path1.moveTo(this.topCore);
-    // path1.lineTo(this.wings[0]);
-    // path1.lineTo(this.wings[1]);
-    // path1.lineTo(this.top3);
-    // path1.lineTo(this.topCore);
-
-
-    // path1.moveTo(this.topNext);
-    // path1.lineTo(this.wings[2])
-    // path1.lineTo(this.wings[3]);
-    // path1.lineTo(this.topCore);
-    // path1.lineTo(this.topNext);
-
-    // path1.moveTo(this.top4);
-    // path1.lineTo(this.wings[4]);
-    // path1.lineTo(this.wings[5]);
-    // path1.lineTo(this.topNext);
-    // path1.lineTo(this.top4);
-
-    // path1.moveTo(this.topCore);
-    // path1.lineTo(this.flaps[2]);
-    // path1.lineTo(this.flaps[3]);
-    // path1.lineTo(this.wings[3]);
-    // path1.lineTo(this.topCore);
-
-    // path1.moveTo(this.topNext);
-    // path1.lineTo(this.flaps[0]);
-    // path1.lineTo(this.flaps[1]);
-    // path1.lineTo(this.wings[2]);
-    // path1.lineTo(this.topNext);
-
-    // path1.moveTo(new PVector(this.scale*3, 0));
-    // path1.lineTo(this.flaps[4]);
-    // path1.lineTo(this.flaps[5]);
-    // path1.lineTo(this.top3);
-    // path1.lineTo(new PVector(this.scale*3, 0));
-
-    // path1.moveTo(new PVector(this.scale*4, 0));
-    // path1.lineTo(this.flaps[6]);
-    // path1.lineTo(this.flaps[7]);
-    // path1.lineTo(this.top4);
-    // path1.lineTo(new PVector(this.scale*4, 0));
-
-
-    // path1.lineTo(new PVector(0, this.heightInfoRightTop));
-    path1.close();
-
-    const pathNode = path1.getPathNode();
-    this.pathGroup.appendChild(pathNode);
-
-
     this.writeNumber(new PVector(this.scale*3.2, this.scale*0.5));
     this.drawPolygon();
   }
