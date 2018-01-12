@@ -1,14 +1,16 @@
 import { Unit } from './unit';
 import { getNode } from './SVGUtil';
-
-const scale = 37.79*2; // 2 cm
+import store from './redux/store'
 
 const boundingboxWidth = 72 * 24;
 const boundingboxHeight = 72 * 18;
 
 class Layer {
+
   constructor(data) {
-    const heights = data.height_data;
+
+    let scale  = store.getState()['unit'];
+    let heights = data.height_data;
     this.baseSVG = getNode('svg', {width: scale*heights.length ,height: scale* (heights[0].length-1)});
 
     this.units = [];
@@ -18,12 +20,12 @@ class Layer {
       transferX = scale*10*i; // this is really arbitrary number
       for (let k = 0, l = heights[i].length-1; k < l; k++) {
         let transferY = scale*10*k;
-        const heightScale = 1;
+
         const unit = new Unit({
-          leftTop: heights[i][k]/heightScale,
-          rightTop: heights[i][k+1]/heightScale,
-          leftBottom: heights[i+1][k]/heightScale,
-          rightBottom: heights[i+1][k+1]/heightScale,
+          leftTop: heights[i][k],
+          rightTop: heights[i][k+1],
+          leftBottom: heights[i+1][k],
+          rightBottom: heights[i+1][k+1],
           scale: scale,
           xIndex: i,
           yIndex: k,
@@ -35,9 +37,9 @@ class Layer {
       }
     }
 
-    var wrapperRectangle = getNode('rect', {width: boundingboxWidth, height: boundingboxHeight, style: "stroke:blue;fill:none"});
+    let wrapperRectangle = getNode('rect', {width: boundingboxWidth, height: boundingboxHeight, style: "stroke:blue;fill:none"});
 
-    for(const unit of this.units) {
+    for(let unit of this.units) {
       unit.draw();
       this.baseSVG.appendChild(unit.getPathGroup());
     }

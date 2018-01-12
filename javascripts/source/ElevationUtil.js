@@ -1,8 +1,6 @@
 import store from './redux/store'
 
-const grid = store.getState()['grid'];
-const delayTime = 1000;
-
+let grid = store.getState()['grid'];
 let distanceBetween;
 
 // return double array
@@ -106,7 +104,10 @@ function postProcessHeightData (result) {
 }
 
 function getElevationValue (startCoord, endCoord) {
-  const elevationUrlsToFetch = getElevationCallUrls(startCoord, endCoord);
+  let delayTime = 1000;
+
+  let elevationUrlsToFetch = getElevationCallUrls(startCoord, endCoord);
+
   let result = {
     "height_data": []
   }
