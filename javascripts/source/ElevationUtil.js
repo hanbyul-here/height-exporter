@@ -78,15 +78,15 @@ function deg2rad(deg) {
 }
 
 function postProcessHeightData (result) {
-  //37.795275590551 pixel (X) is cm
-  // we are going to make 2 cm unit
-  let scale = 0.02/ (distanceBetween*1000);
+  // we are going to make 1 cm unit
+  // 1 in == 2.54 cm arg!!! everybody use metric please!
+  let scale =  (store.getState()['unit']/72 *2.54 * 0.01) / (distanceBetween*1000); // scale in meter
 
   let flattenedArray = result['height_data'].reduce((prev, curr) => {return prev.concat(curr)}, []);
   let maxVal = Math.max.apply(null, flattenedArray);
   let minVal = Math.min.apply(null, flattenedArray);
-  let offset = 72;//minVal/100;
-  let exaggeration = 2;
+  let offset = store.getState()['offset']
+  let exaggeration = 1.2;
 
   let newHeightValues = [];
   for (let i = 0; i < grid; i++) {
