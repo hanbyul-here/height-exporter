@@ -1,10 +1,11 @@
 import { getNode } from './SVGUtil';
-var vectorizeText = require("vectorize-text");
+const vectorizeText = require("vectorize-text");
 const PVector = require('pvectorjs');
 
 class Unit {
   constructor(info) {
     this.scale = info.scale;
+    this.material = 1;
     this.heightInfo = {
       leftTop: new PVector(0, this.scale, info.leftTop),
       rightTop: new PVector(this.scale, this.scale, info.rightTop),
@@ -33,20 +34,35 @@ class Unit {
     return NaN;
   }
 
+  applyMaterialThickness() {
+    /* paper has thickness which increases cube's width when assembled */
+    var t3 = new PVector(0,0).set(this.top3);
+    var t4 = new PVector(0,0).set(this.top4);
+
+    var tc = new PVector(0,0).set(this.topCore);
+    var tn = new PVector(0,0).set(this.topNext);
+
+    this.top3.lerp(t4, this.material/this.scale);
+    this.top4.lerp(t3, this.material/this.scale);
+
+    this.topCore.lerp(tn, this.material/this.scale);
+    this.topNext.lerp(tc, this.material/this.scale);
+  }
+
   unfoldWide() {
 
-    const scale = this.scale;
-    const baseAngle = this.baseAngle;
-    const bottomAngle = this.bottomAngle;
-    const topAngle = this.topAngle;
+    let scale = this.scale;
+    let baseAngle = this.baseAngle;
+    let bottomAngle = this.bottomAngle;
+    let topAngle = this.topAngle;
 
-    const coreDist = this.coreDist;
-    const topDist = this.topDist;
+    let coreDist = this.coreDist;
+    let topDist = this.topDist;
 
-    const leftTop = this.heightInfo.leftTop; // [0]
-    const leftBottom = this.heightInfo.leftBottom; // [1]
-    const rightBottom = this.heightInfo.rightBottom; // [2]
-    const rightTop = this.heightInfo.rightTop; //[3]
+    let leftTop = this.heightInfo.leftTop; // [0]
+    let leftBottom = this.heightInfo.leftBottom; // [1]
+    let rightBottom = this.heightInfo.rightBottom; // [2]
+    let rightTop = this.heightInfo.rightTop; //[3]
 
     this.topCore = new PVector(
               (scale*4 + Math.cos((3*Math.PI/2) - baseAngle - bottomAngle) * coreDist),
@@ -56,11 +72,16 @@ class Unit {
             (scale*4 + Math.cos((3*Math.PI/2) - baseAngle - bottomAngle - topAngle) * topDist),
             (leftTop.z + Math.sin((3*Math.PI/2) - baseAngle - bottomAngle - topAngle)* topDist));
 
-    const distBtw34 = this.distance(this.top3,this.top4);
+    /** change top3, top4, topcore, topnext value***/
+    this.applyMaterialThickness();
+    /*****/
+
+
+    let distBtw34 = this.distance(this.top3,this.top4);
 
     this.wings = new Array(6);
 
-    const distBtwnNC = this.distance(this.topCore, this.topNext);
+    let distBtwnNC = this.distance(this.topCore, this.topNext);
 
     this.wings[0] = new PVector.sub(this.topCore, this.top3);
     this.wings[0].norm();
@@ -100,7 +121,7 @@ class Unit {
     this.wings[5].mult(leftBottom.z);
     this.wings[5].add(this.topNext);
 
-    const flapScale = this.scale/4;
+    let flapScale = this.scale/4;
 
     this.flaps = new Array(8);
     this.flaps[0] = new PVector.sub(this.wings[2], this.topNext);
@@ -137,10 +158,10 @@ class Unit {
   }
 
   unfold () {
-    const leftBottom = this.heightInfo.leftBottom;// [1]
-    const rightBottom = this.heightInfo.rightBottom;// [2]
-    const leftTop = this.heightInfo.leftTop;// [0]
-    const rightTop = this.heightInfo.rightTop;//[3]
+    let leftBottom = this.heightInfo.leftBottom;// [1]
+    let rightBottom = this.heightInfo.rightBottom;// [2]
+    let leftTop = this.heightInfo.leftTop;// [0]
+    let rightTop = this.heightInfo.rightTop;//[3]
 
 
     this.top0 = new PVector(this.scale *0, leftTop.z);
@@ -149,7 +170,7 @@ class Unit {
     this.top3 = new PVector(this.scale *3, rightTop.z);
     this.top4 = new PVector(this.scale *4, leftTop.z);
 
-    const bottom4 = new PVector(this.scale *4, 0);
+    let bottom4 = new PVector(this.scale *4, 0);
 
     this.baseAngle = PVector.angleBetween(PVector.sub(bottom4, this.top4), PVector.sub(this.top3, this.top4));
 
@@ -159,9 +180,9 @@ class Unit {
     this.coreV = PVector.sub(rightBottom, leftTop);
     this.bottomV = PVector.sub(rightTop, leftTop);
 
-    const topV = this.topV;
-    const coreV = this.coreV;
-    const bottomV = this.bottomV;
+    let topV = this.topV;
+    let coreV = this.coreV;
+    let bottomV = this.bottomV;
 
     this.topAngle = PVector.angleBetween(topV,coreV);
     this.bottomAngle = PVector.angleBetween(coreV,bottomV);
@@ -170,18 +191,18 @@ class Unit {
     this.coreDist = this.distance(rightBottom, leftTop);
     this.bottomDist = this.distance(rightTop, leftTop);
 
-    const downVector = new PVector(0, -1);
+    let downVector = new PVector(0, -1);
 
-    const pv1 = PVector.sub(this.top1, this.top0);
+    let pv1 = PVector.sub(this.top1, this.top0);
     pv1.norm();
     this.angle1 = PVector.angleBetween(pv1, downVector);
 
 
-    const pv2 = PVector.sub(this.top2, this.top1);
+    let pv2 = PVector.sub(this.top2, this.top1);
     pv2.norm();
     this.angle2 = PVector.angleBetween(pv2, downVector);
 
-    const pv3 = PVector.sub(this.top3, this.top2);
+    let pv3 = PVector.sub(this.top3, this.top2);
     pv3.norm();
     this.angle3 = PVector.angleBetween(pv3, downVector);
   }
@@ -200,7 +221,6 @@ class Unit {
     let offsety = -this.scale*0.3;
 
     polygons.forEach(function(loops) {
-      //numberPolygon.push('<path d="')
       loops.forEach(function(loop) {
         var start = loop[0]
         numberPolygon.push('M ' + (start[0]+offsetx) + ' ' + (start[1]+offsety))
@@ -211,7 +231,7 @@ class Unit {
         numberPolygon.push('L ' + (start[0]+offsetx) + ' ' + (start[1]+offsety))
       })
     })
-    let numberPolygonToAttch = getNode('path', {d:numberPolygon.join(' '), style: "stroke:black;fill:none", 'transform': `rotate(180 ${v.x + this.scale/4} 3)`})
+    let numberPolygonToAttch = getNode('path', {d:numberPolygon.join(' '), style: "stroke-width:0.001;stroke:black;fill:none", 'transform': `rotate(180 ${ offsetx + this.scale*0.3} 3)`})
 
     this.pathGroup.appendChild(numberPolygonToAttch);
   }
@@ -256,14 +276,15 @@ class Unit {
     ps.push(e(this.wings[4]));
     ps.push(e(this.wings[5]));
 
-    var polygonNode = getNode('polygon', {points: ps.join(' '), style: "stroke:purple;fill:none" , rel: `${this.xIndex}-${this.yIndex}` });
+    var polygonNode = getNode('polygon', {points: ps.join(' '), style: "stroke-width:0.001;stroke:red;fill:none" , rel: `${this.xIndex}-${this.yIndex}` });
     this.pathGroup.appendChild(polygonNode);
   }
 
   draw () {
     this.unfold();
+    // this.applyMaterialThickness();
     this.unfoldWide();
-    this.writeNumber(new PVector(this.scale*3.2, this.scale*0.5));
+    this.writeNumber();
     this.drawPolygon();
   }
 
