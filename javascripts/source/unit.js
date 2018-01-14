@@ -5,7 +5,7 @@ const PVector = require('pvectorjs');
 class Unit {
   constructor(info) {
     this.scale = info.scale;
-    this.material = 1;
+    this.material = 20;
     this.heightInfo = {
       leftTop: new PVector(0, this.scale, info.leftTop),
       rightTop: new PVector(this.scale, this.scale, info.rightTop),
@@ -49,6 +49,10 @@ class Unit {
     this.topNext.lerp(tc, this.material/this.scale);
   }
 
+  getInterpolatedHeight(valA, valB, percentage) {
+    return valA + ((valB - valA) *percentage);
+  }
+
   unfoldWide() {
 
     let scale = this.scale;
@@ -72,6 +76,11 @@ class Unit {
             (scale*4 + Math.cos((3*Math.PI/2) - baseAngle - bottomAngle - topAngle) * topDist),
             (leftTop.z + Math.sin((3*Math.PI/2) - baseAngle - bottomAngle - topAngle)* topDist));
 
+    this.originTop3 = new PVector(this.top3.x, this.top3.y);
+    this.originTop4 = new PVector(this.top4.x, this.top4.y);
+    this.originTopCore = new PVector(this.topCore.x, this.topCore.y);
+    this.originTopNext = new PVector(this.topNext.x, this.topNext.y);
+
     /** change top3, top4, topcore, topnext value***/
     this.applyMaterialThickness();
     /*****/
@@ -79,47 +88,50 @@ class Unit {
 
     let distBtw34 = this.distance(this.top3,this.top4);
 
-    this.wings = new Array(6);
+    this.wings = new Array(8);
 
     let distBtwnNC = this.distance(this.topCore, this.topNext);
 
-    this.wings[0] = new PVector.sub(this.topCore, this.top3);
+    this.wings[0] = new PVector.sub(this.originTopCore, this.originTop3);
     this.wings[0].norm();
     this.wings[0].rotateBy(Math.PI - this.angle3);
     this.wings[0].mult(rightBottom.z);
-    this.wings[0].add(this.topCore);
+    this.wings[0].add(this.originTopCore);
 
-    this.wings[1] = new PVector.sub(this.topCore, this.top3);
+    this.wings[1] = new PVector.sub(this.originTopCore, this.originTop3);
     this.wings[1].norm();
     this.wings[1].rotateBy(Math.PI - this.angle3);
     this.wings[1].mult(rightTop.z);
-    this.wings[1].add(this.top3);
+    this.wings[1].add(this.originTop3);
 
-    this.wings[2] = new PVector.sub(this.topNext, this.topCore);
+    this.wings[2] = new PVector.sub(this.originTopNext, this.originTopCore);
     this.wings[2].norm();
     this.wings[2].rotateBy(Math.PI - this.angle2);
-    this.wings[2].mult(leftBottom.z);
+    this.wings[2].mult( this.getInterpolatedHeight(leftBottom.z, rightBottom.z, this.material/this.scale));
     this.wings[2].add(this.topNext);
 
 
-    this.wings[3] = new PVector.sub(this.topNext, this.topCore);
+    this.wings[3] = new PVector.sub(this.originTopNext, this.originTopCore);
     this.wings[3].norm();
     this.wings[3].rotateBy(Math.PI - this.angle2);
-    this.wings[3].mult(rightBottom.z);
+    this.wings[3].mult( this.getInterpolatedHeight(rightBottom.z, leftBottom.z, this.material/this.scale));
     this.wings[3].add(this.topCore);
 
-    this.wings[4] = new PVector.sub(this.topNext, this.top4);
+    this.wings[4] = new PVector.sub(this.originTopNext, this.originTop4);
     this.wings[4].norm();
     this.wings[4].rotateBy(-this.angle1);
     this.wings[4].mult(leftTop.z);
-    this.wings[4].add(this.top4);
+    this.wings[4].add(this.originTop4);
 
 
-    this.wings[5] = PVector.sub(this.topNext, this.top4);
+    this.wings[5] = PVector.sub(this.originTopNext, this.originTop4);
     this.wings[5].norm();
     this.wings[5].rotateBy(-this.angle1);
     this.wings[5].mult(leftBottom.z);
-    this.wings[5].add(this.topNext);
+    this.wings[5].add(this.originTopNext);
+
+    this.wings[6] = new PVector(this.top4.x , 0);
+    this.wings[7] = new PVector(this.top3.x , 0);
 
     let flapScale = this.scale/4;
 
@@ -245,6 +257,7 @@ class Unit {
 
     let ps = [];
 
+    ps.push(e(this.originTopNext));
     ps.push(e(this.topNext));
     ps.push(e(this.flaps[0]));
     ps.push(e(this.flaps[1]));
@@ -255,22 +268,25 @@ class Unit {
     ps.push(e(this.flaps[3]));
     ps.push(e(this.flaps[2]));
     ps.push(e(this.topCore));
+    ps.push(e(this.originTopCore));
 
 
     ps.push(e(this.wings[0]));
     ps.push(e(this.wings[1]));
 
-
+    ps.push(e(this.originTop3))
     ps.push(e(this.top3));
     ps.push(e(this.flaps[5]));
     ps.push(e(this.flaps[4]));
-    ps.push(e(new PVector(this.scale*3, 0)));
+    ps.push(e(this.wings[7]));
+    //ps.push(e(new PVector(this.scale*3, 0)));
 
-
-    ps.push(e(new PVector(this.scale*4, 0)));
+    ps.push(e(this.wings[6]));
+    //ps.push(e(new PVector(this.scale*4, 0)));
     ps.push(e(this.flaps[6]));
     ps.push(e(this.flaps[7]));
     ps.push(e(this.top4));
+    ps.push(e(this.originTop4));
 
 
     ps.push(e(this.wings[4]));
