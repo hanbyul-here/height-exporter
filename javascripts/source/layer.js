@@ -7,19 +7,21 @@ const boundingboxHeight = 72 * 18;
 
 class Layer {
 
-  constructor(data) {
+  constructor() {
 
-    let scale  = store.getState()['unit'];
-    let heights = data.height_data;
+    let scale  = store.getState()['layout']['oneUnitSizeInInch'] * store.getState()['layout']['inchToPixel'];
+    let heights = store.getState()['heightData']['processedData']
+    console.log(heights)
+
     this.baseSVG = getNode('svg', {width: scale*heights.length ,height: scale* (heights[0].length-1)});
 
     this.units = [];
     let transferX = 0;
 
     for (let i = 0, j = heights.length-1; i < j; i++) {
-      transferX = scale*10*i; // this is really arbitrary number
+      transferX = scale*13*i; // this is really arbitrary number
       for (let k = 0, l = heights[i].length-1; k < l; k++) {
-        let transferY = scale*10*k;
+        let transferY = scale*13*k;
 
         const unit = new Unit({
           leftTop: heights[i][k],
@@ -52,4 +54,4 @@ class Layer {
 
 }
 
-module.exports = { Layer };
+export default Layer;

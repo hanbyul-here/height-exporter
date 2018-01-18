@@ -1,8 +1,11 @@
-import store from './redux/store'
 import { getElevationValue } from './ElevationUtil';
-import { Layer } from './Layer';
+import Layer from './Layer';
 
 import { setScene } from './Preview';
+
+import store from './redux/store'
+import { changeUnitSize, changeCoordinates } from './redux/actions';
+
 
 (function (root, factory) {
   // Universal Module Definition (UMD)
@@ -27,6 +30,8 @@ import { setScene } from './Preview';
     minZoom: 2})
   .setView([46.1979, -122.1845], 12);
 
+
+
   L.Mapzen.hash({
     map: map
   })
@@ -37,6 +42,8 @@ import { setScene } from './Preview';
 
   areaSelect.on("change", function() {
     var bounds = this.getBounds();
+
+    store.dispatch(changeCoordinates(bounds));
 
     document.getElementById('startLat').value = bounds.getNorthEast().lat.toFixed(4);
     document.getElementById('startLon').value = bounds.getNorthEast().lng.toFixed(4);
@@ -52,37 +59,13 @@ import { setScene } from './Preview';
   var statusBox = document.getElementById('status');
 
   requestTileButton.addEventListener('click', function (e) {
-    // loading static data while in development
-    // const xhr = new XMLHttpRequest();
-    // xhr.open("GET", '/javascripts/sample/sample-data-fuji.json');
-    // xhr.onload = () => {
-    //   var data = JSON.parse(xhr.responseText);
-    //   console.log(data);
-    //   var layer = new Layer(data[0]);
-    //   var svgdata = layer.getSVGData();
-    //   enableDownloadLink(svgdata);
-    // }
-    // xhr.onerror = () => console.log('error')
-    // xhr.send();
 
-
-    var startCoord = {
-      latitude: document.getElementById('startLat').value,
-      longitude: document.getElementById('startLon').value
-    };
-    var endCoord = {
-      latitude: document.getElementById('endLat').value,
-      longitude: document.getElementById('endLon').value
-    }
-
-    getElevationValue(startCoord, endCoord).then( (result) => {
-      console.log(result);
-      var preview = setScene(result.height_data);
-      var layer = new Layer(result);
+    getElevationValue().then( () => {
+      var preview = setScene();
+      var layer = new Layer();
       var svgdata = layer.getSVGData();
       enableDownloadLink(svgdata);
     })
-
 
   });
 

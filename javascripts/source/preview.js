@@ -1,13 +1,12 @@
-var THREE = require('three');
-
-var OrbitControls = require('three-orbitcontrols')
 import store from './redux/store'
+var THREE = require('three');
+var OrbitControls = require('three-orbitcontrols')
 
-const setScene = function (resultArr) {
+const setScene = function () {
 
-  const grid = store.getState()['grid'];
-  const scale = store.getState()['unit'];
-  const downDefault = 500;
+  let heights = store.getState()['heightData']['processedData']
+  let grid = store.getState()['requestParameter']['gridPointsNumber'];
+  let scale = store.getState()['layout']['oneUnitSizeInInch'] * store.getState()['layout']['inchToPixel'];
 
   var camera, scene, renderer;
   var plane;
@@ -37,11 +36,8 @@ const setScene = function (resultArr) {
     controls.enableZoom = false
 
 
-    var flattenedArray = resultArr.reduce((prev, curr) => {return prev.concat(curr)}, []);
-    console.log(flattenedArray.length);
-    console.log(plane.geometry.vertices.length);
-
-    let offset = store.getState()['offset'];
+    var flattenedArray = heights.reduce((prev, curr) => {return prev.concat(curr)}, []);
+    let offset = store.getState()['layout']['offset'];
 
     for (let i = 0; i < plane.geometry.vertices.length; i++ ) {
       plane.geometry.vertices[i].z = flattenedArray[i] - offset;

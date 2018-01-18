@@ -5,7 +5,7 @@ const PVector = require('pvectorjs');
 class Unit {
   constructor(info) {
     this.scale = info.scale;
-    this.material = 20;
+    this.material = 1;
     this.heightInfo = {
       leftTop: new PVector(0, this.scale, info.leftTop),
       rightTop: new PVector(this.scale, this.scale, info.rightTop),

@@ -1,64 +1,8 @@
 import store from './redux/store'
 
-let grid = store.getState()['grid'];
+import { receiveHeightData, receiveProcessedHeightData } from './redux/actions'
+
 let distanceBetween;
-
-// return double array
-function getElevationCallUrls (startCoord, endCoord) {
-
-  let elevationUrlsToFetch = [];
-
-  const rightTop = {
-    latitude: endCoord.latitude,
-    longitude: startCoord.longitude
-  }
-
-  distanceBetween = getDistanceFromLatLonInKm(startCoord.latitude, startCoord.longitude, rightTop.latitude, rightTop.longitude)/(grid-1);
-
-  const gap = (parseFloat(endCoord.longitude) - parseFloat(startCoord.longitude))/(grid-1);
-
-  for (let i = 0; i < grid; i++) {
-    let nextPoint = {latitude: startCoord.latitude, longitude: parseFloat(startCoord.longitude) + gap*i};
-    let nextRightPoint = { latitude: endCoord.latitude, longitude: nextPoint.longitude};
-    let thisUrl = buildURLWithShapes(getCoordArray(nextPoint, nextRightPoint));
-    elevationUrlsToFetch.push(thisUrl);
-  }
-
-  return elevationUrlsToFetch;
-}
-
-function getCoordArray (startCoord, endCoord) {
-  let returnArray = [];
-  const gap = (parseFloat(endCoord.latitude) - parseFloat(startCoord.latitude))/(grid-1);
-  for(let i = 0; i< grid; i++) {
-    returnArray.push({
-      lat: parseFloat(startCoord.latitude) + (gap*i),
-      lon: startCoord.longitude
-    })
-  }
-  return returnArray;
-}
-
-
-function buildURLWithShapes (shapeArray) {
-  const serviceUrl = 'https://elevation.mapzen.com/';
-  const apiKey = 'mapzen-cf31pKV';
-  // var startLoc = converToLatLon(startCoord);
-  // var endLoc = converToLatLon(endCoord);
-  var params = JSON.stringify({
-    shape : shapeArray
-  });
-
-  return serviceUrl + 'height?json=' + params + '&api_key=' + apiKey;
-}
-
-
-function converToLatLon (obj) {
-  return {
-    lat: obj.latitude,
-    lon: obj.longitude
-  };
-}
 
 function getDistanceFromLatLonInKm(lat1,lon1,lat2,lon2) {
   var R = 6371; // Radius of the earth in km
@@ -77,42 +21,102 @@ function deg2rad(deg) {
   return deg * (Math.PI/180)
 }
 
-function postProcessHeightData (result) {
-  // we are going to make 1 cm unit
-  // 1 in == 2.54 cm arg!!! everybody use metric please!
-  let scale =  (store.getState()['unit']/72 *2.54 * 0.01) / (distanceBetween*1000); // scale in meter
 
-  let flattenedArray = result['height_data'].reduce((prev, curr) => {return prev.concat(curr)}, []);
-  let maxVal = Math.max.apply(null, flattenedArray);
-  let minVal = Math.min.apply(null, flattenedArray);
-  let offset = store.getState()['offset']
-  let exaggeration = 1.2;
+function getElevationCallUrls () {
+
+  let startCoord = store.getState()['requestParameter']['startCoordinates']
+  let endCoord = store.getState()['requestParameter']['endCoordinates']
+  let gridPointsNumber = store.getState()['requestParameter']['gridPointsNumber'];
+
+  let elevationUrlsToFetch = [];
+
+  console.log(store.getState()['requestParameter']['endCoordinates'])
+  let rightTop = {
+    lat: endCoord.lat,
+    lng: startCoord.lng
+  }
+
+  distanceBetween = getDistanceFromLatLonInKm(startCoord.lat, startCoord.lng, rightTop.lat, rightTop.lng)/(gridPointsNumber-1);
+  let gap = (endCoord.lng - startCoord.lng)/(gridPointsNumber-1);
+
+  for (let i = 0; i < gridPointsNumber; i++) {
+    let nextPoint = {lat: startCoord.lat, lng: parseFloat(startCoord.lng) + gap*i};
+    let nextRightPoint = {lat: endCoord.lat, lng: nextPoint.lng};
+    let thisUrl = buildURLWithShapes(getCoordArray(nextPoint, nextRightPoint));
+    elevationUrlsToFetch.push(thisUrl);
+  }
+
+  return elevationUrlsToFetch;
+}
+
+function getCoordArray (start, end) {
+  let returnArray = [];
+  let gridPointsNumber = store.getState()['requestParameter']['gridPointsNumber'];
+  let gap = (parseFloat(end.lat) - parseFloat(start.lat))/(gridPointsNumber-1);
+  for(let i = 0; i< gridPointsNumber; i++) {
+    returnArray.push({
+      lat: parseFloat(start.lat) + (gap*i),
+      lon: start.lng
+    })
+  }
+  return returnArray;
+}
+
+
+function buildURLWithShapes (shapeArray) {
+  const serviceUrl = 'https://elevation.mapzen.com/';
+  const apiKey = 'mapzen-cf31pKV';
+  var params = JSON.stringify({
+    shape : shapeArray
+  });
+
+  return serviceUrl + 'height?json=' + params + '&api_key=' + apiKey;
+}
+
+
+
+function postProcessHeightData () {
+
+  let unitSize = store.getState()['layout']['oneUnitSizeInInch'];
+  let inchToPixel = store.getState()['layout']['inchToPixel'];
+  let gridPointsNumber = store.getState()['requestParameter']['gridPointsNumber'];
+  // 1 in == 2.54 cm. pixel => inch => cm => m
+
+  let scale =  (unitSize/inchToPixel *2.54 * 0.01) / (distanceBetween*1000); // scale in meter
+
+  let heightData = store.getState()['heightData']['rawData']
+  let offset = store.getState()['layout']['offset']
+  let minVal = store.getState()['heightData']['minVal']
+  let maxVal = store.getState()['heightData']['maxVal']
+  let exaggeration = store.getState()['layout']['exaggeration']
 
   let newHeightValues = [];
-  for (let i = 0; i < grid; i++) {
-    let valRows = [];
-    for(let j = 0; j < grid; j++) {
-      const currentVal = result['height_data'][i][j];
 
-      valRows.push(((currentVal-minVal) * 100 * scale * exaggeration* 37.79) + offset);
-      // console.log((currentVal * scale * 72) - minArtNumber);
-      //console.log(((currentVal/maxVal) * maxArtNumber)  )
+  function scaleDownHeight(val) {
+    // m => cm => pixel with exaggeration
+    return ((val-minVal) * scale * 100 * 37.79 * exaggeration) + offset
+  }
+
+  for (let i = 0; i < gridPointsNumber; i++) {
+    let valRows = [];
+    for(let j = 0; j < gridPointsNumber; j++) {
+      let currentVal = heightData[i][j];
+      valRows.push(scaleDownHeight(currentVal));
     }
     newHeightValues.push(valRows);
   }
+  store.dispatch(receiveProcessedHeightData(newHeightValues))
   return newHeightValues;
 }
 
-function getElevationValue (startCoord, endCoord) {
+function getElevationValue () {
   let delayTime = 1000;
 
-  let elevationUrlsToFetch = getElevationCallUrls(startCoord, endCoord);
+  let elevationUrlsToFetch = getElevationCallUrls();
 
-  let result = {
-    "height_data": []
-  }
+  let result =  []
 
-  const getEachCall = (url) =>
+  let getEachCall = (url) =>
     new Promise((resolve, reject) => {
       console.log(url);
       const xhr = new XMLHttpRequest();
@@ -122,23 +126,20 @@ function getElevationValue (startCoord, endCoord) {
       xhr.send();
     });
 
-  const delay = ms => new Promise(resolve => setTimeout(resolve, ms, 'dumb'));
+  let delay = ms => new Promise(resolve => setTimeout(resolve, ms, 'dumb'));
   return elevationUrlsToFetch.reduce(function(promise, item, index, array) {
     return promise.then(values => {
       // Second promise was just to delay
       return Promise.all([getEachCall(item), delay(delayTime)]).then((values)=> {
-        result.height_data.push(values[0].height);
+        result.push(values[0].height);
         return result;
       });
     })
   }, Promise.resolve())
-  .then((result) => {
-    return {
-      "height_data": postProcessHeightData(result)
-    }
+  .then(() => {
+    store.dispatch(receiveHeightData(result))
+    postProcessHeightData();
   })
 }
-
-
 
 module.exports = { getElevationValue };
